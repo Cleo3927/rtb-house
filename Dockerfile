@@ -9,6 +9,9 @@ ARG JAR_FILE
 
 ADD ${JAR_FILE} /app/app.jar
 
+COPY . /usr/src/myapp
+WORKDIR /usr/src/myapp
+
 ENTRYPOINT java \
     -Xmx2g \
     -jar /app/app.jar

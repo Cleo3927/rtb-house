@@ -1,0 +1,81 @@
+---
+- name: Aerospike install
+  any_errors_fatal: true
+  hosts: aerospike
+
+  tasks:
+    - name: Download Aerospike
+      become: true
+      get_url:
+        url: https://download.aerospike.com/artifacts/aerospike-server-community/7.1.0/aerospike-server-community_7.1.0.5_tools-11.0.2_ubuntu20.04_x86_64.tgz
+        dest: /tmp/aerospike.tgz
+        force: true
+      when: ansible_facts.services['aerospike.service'] is not defined
+
+#    - name: Remove old aerospike
+#      become: true
+#      become_user: root
+#      command:
+#        cmd: bash -c "apt-get remove -y aerospike-server-community aerospike-tools"
+
+    - name: Decompress Aerospike
+      become: true
+      become_user: root
+      command:
+        cmd: bash -c "tar xzvf /tmp/aerospike.tgz"
+        chdir: /tmp
+      when: ansible_facts.services['aerospike.service'] is not defined
+
+    - name: Install Aerospike
+      become: true
+      become_user: root
+      command:
+        cmd: bash -c "./asinstall"
+        chdir: /tmp/aerospike-server-community_7.1.0.5_tools-11.0.2_ubuntu20.04_x86_64
+      when: ansible_facts.services['aerospike.service'] is not defined
+
+    - name: Delete old logs directory
+      become: true
+      file:
+        path: /var/log/aerospike
+        state: absent
+
+    - name: Delete old data file
+      become: true
+      file:
+        path: /opt/aerospike/data/ns1.dat
+        state: absent
+
+
+    - name: Create logs directory
+      become: true
+      file:
+        path: /var/log/aerospike
+        state: directory
+
+    - name: Copy config file with owner and permissions
+      become: true
+      register: service_conf
+      template:
+        src: aerospike.conf.j2
+        dest: /etc/aerospike/aerospike.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Ensure the Aerospike daemon is enabled
+      become: true
+      become_user: root
+      systemd:
+        name: aerospike
+        state: started
+        enabled: yes
+        daemon_reload: yes
+
+    - name: Restart daemon on config change
+      become: true
+      become_user: root
+      systemd:
+        name: aerospike
+        state: restarted
+      when: service_conf.changed

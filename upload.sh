@@ -1,0 +1,1 @@
+rsync -avz --delete --exclude target/ allezon-server/ rtb:allezon-server/

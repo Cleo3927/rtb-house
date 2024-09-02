@@ -1,30 +1,27 @@
 package jowita.drozdowicz;
 
+import java.time.Instant;
 import java.util.List;
 
-import jowita.drozdowicz.domain.Action;
+import jowita.drozdowicz.db.DataDao;
+import jowita.drozdowicz.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import jowita.drozdowicz.domain.Aggregate;
-import jowita.drozdowicz.domain.AggregatesQueryResult;
-import jowita.drozdowicz.domain.UserProfileResult;
-import jowita.drozdowicz.domain.UserTagEvent;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class EchoClient {
 
     private static final Logger log = LoggerFactory.getLogger(EchoClient.class);
 
+    @Autowired
+    private DataDao dataDao;
+
     @PostMapping("/user_tags")
     public ResponseEntity<Void> addUserTag(@RequestBody(required = false) UserTagEvent userTag) {
-
+        dataDao.put(userTag);
         return ResponseEntity.noContent().build();
     }
 
@@ -34,7 +31,15 @@ public class EchoClient {
             @RequestParam(defaultValue = "200") int limit,
             @RequestBody(required = false) UserProfileResult expectedResult) {
 
-        return ResponseEntity.ok(expectedResult);
+        String[] timeRange = timeRangeStr.split("_");
+        String startTime = timeRange[0];
+        String endTime = timeRange[1];
+
+        Instant start = Instant.parse(startTime + "Z");
+        Instant end = Instant.parse(endTime + "Z");
+
+        UserProfileResult result = dataDao.get(cookie, start, end, limit);
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/aggregates")
@@ -46,6 +51,14 @@ public class EchoClient {
             @RequestParam(value = "category_id", required = false) String categoryId,
             @RequestBody(required = false) AggregatesQueryResult expectedResult) {
 
-        return ResponseEntity.ok(expectedResult);
+        String[] timeRange = timeRangeStr.split("_");
+        String startTime = timeRange[0];
+        String endTime = timeRange[1];
+
+        Instant start = Instant.parse(startTime + "Z");
+        Instant end = Instant.parse(endTime + "Z");
+
+        AggregatesQueryResult result = dataDao.aggregate(action, start, end, aggregates, origin, brandId, categoryId);
+        return ResponseEntity.ok(result);
     }
 }

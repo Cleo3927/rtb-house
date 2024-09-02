@@ -1,0 +1,14 @@
+[docker]
+st104vm1[01:10].rtb-lab.pl
+
+[registry]
+st104vm101.rtb-lab.pl
+
+[swarm_manager]
+st104vm101.rtb-lab.pl
+
+[swarm_nodes]
+st104vm1[02:10].rtb-lab.pl
+
+[aerospike]
+st104vm1[01:08].rtb-lab.pl

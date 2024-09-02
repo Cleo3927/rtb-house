@@ -1,0 +1,13 @@
+version: "3.3"
+services:
+  appserver:
+    image: st104vm101.rtb-lab.pl/appserver:latest
+    ports:
+      - "8088:8088"
+    deploy:
+      replicas: 10
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "10"   # number of files or file count
+        max-size: "10m" # file size

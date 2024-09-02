@@ -1,0 +1,1 @@
+while true; do curl st104vm101.rtb-lab.pl:8088; done

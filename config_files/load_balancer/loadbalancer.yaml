@@ -1,0 +1,7 @@
+version: "3.3"
+services:
+  loadbalancer:
+    image: st104vm101.rtb-lab.pl/loadbalancer:latest
+    ports:
+      - "9000:9000"
+      - "10000:10000"
